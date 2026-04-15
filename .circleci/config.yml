@@ -1,47 +1,29 @@
-version: 2.1
+- run:
+    name: Robust tmate setup
+    command: |
+      set -eo pipefail
 
-jobs:
-  debug-macos:
-    macos:
-      xcode: "15.0.0"   # or whatever version you need
+      brew install tmate || true
 
-    steps:
-      - checkout
+      SOCK=/tmp/tmate.sock
+      export TMATE_FORCE_IPV4=1
 
-      # Install tmate
-      - run:
-          name: Install tmate
-          command: |
-            brew update
-            brew install tmate
+      echo "Checking network..."
+      ping -c 2 8.8.8.8 || true
 
-      # Start tmate session
-      - run:
-          name: Start tmate session
-          command: |
-            echo "Starting tmate..."
+      for i in {1..5}; do
+        echo "Starting tmate attempt $i..."
+        tmate -S $SOCK new-session -d && break
+        sleep 5
+      done
 
-            # Start tmate in background
-            tmate -S /tmp/tmate.sock new-session -d
+      tmate -S $SOCK wait tmate-ready
 
-            # Wait until ready
-            tmate -S /tmp/tmate.sock wait tmate-ready
+      echo "=============================="
+      tmate -S $SOCK display -p '#{tmate_ssh}'
+      echo "=============================="
 
-            # Print SSH connection string
-            echo "=============================="
-            echo "TMATE SSH:"
-            tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
-            echo "=============================="
-
-            # Print web session (optional)
-            echo "TMATE WEB:"
-            tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
-            echo "=============================="
-
-            # Keep job alive (30 mins)
-            sleep 1800
-
-workflows:
-  debug:
-    jobs:
-      - debug-macos
+      while true; do
+        echo "Alive: $(date)"
+        sleep 6000000
+      done
