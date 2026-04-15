@@ -1,29 +1,7 @@
 - run:
-    name: Robust tmate setup
+    name: sleeping for fun
     command: |
-      set -eo pipefail
-
-      brew install tmate || true
-
-      SOCK=/tmp/tmate.sock
-      export TMATE_FORCE_IPV4=1
-
-      echo "Checking network..."
-      ping -c 2 8.8.8.8 || true
-
-      for i in {1..5}; do
-        echo "Starting tmate attempt $i..."
-        tmate -S $SOCK new-session -d && break
-        sleep 5
-      done
-
-      tmate -S $SOCK wait tmate-ready
-
-      echo "=============================="
-      tmate -S $SOCK display -p '#{tmate_ssh}'
-      echo "=============================="
-
+      echo "Job is now sleeping forever..."
       while true; do
-        echo "Alive: $(date)"
-        sleep 6000000
+        sleep 3600
       done
